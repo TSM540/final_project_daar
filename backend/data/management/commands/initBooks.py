@@ -21,6 +21,9 @@ def compter_mots(url_du_livre):
 
 def put_book_db(book):
     """Make/update the book."""
+    print(book['id'])
+    print(type(book['id']))
+    print(book['title'])
     book_in_db = Book.objects.create(
         gutenberg_id=book['id'],
         download_count=book['download_count'],
@@ -106,7 +109,7 @@ class Command(BaseCommand):
                             
                         
                         chemin_fichier = os.path.join(dossier_book, str(book['id']) + ".txt")
-                        with open(chemin_fichier, 'w') as fichier:
+                        with open(chemin_fichier, 'w',encoding="utf-8") as fichier:
                             fichier.write(contenu)
                         
                         nb_livres += 1
