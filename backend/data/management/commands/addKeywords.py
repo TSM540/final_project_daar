@@ -19,7 +19,7 @@ class Command(BaseCommand):
                 book = Book.objects.get(pk=pk)
             for k, occ in keywords_book.items():
                 if k not in keywords:
-                    keywords_code[book.language.code].add(k)
+                    keywords_code[book.languages.all()[0].code].add(k)
                     keywords[k] = {(book, occ)}
                 else:
                     keywords[k].add((book, occ))

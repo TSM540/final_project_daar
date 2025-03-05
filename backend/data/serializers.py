@@ -23,7 +23,8 @@ class SubjectSerializer(serializers.ModelSerializer):
 class BookSerializer(serializers.ModelSerializer):
     id = serializers.SerializerMethodField()
     authors = PersonSerializer(many=True)
-    language = LanguageSerializer()
+    languages = LanguageSerializer(many=True)
+    # language = LanguageSerializer()
     subjects = serializers.SerializerMethodField()
 
     lookup_field = 'gutenberg_id'
@@ -35,7 +36,7 @@ class BookSerializer(serializers.ModelSerializer):
             'title',
             'authors',
             'subjects',
-            'language',
+            'languages',
             'cover_image',
             'plain_text',
             'download_count'

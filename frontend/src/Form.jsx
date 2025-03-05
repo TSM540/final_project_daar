@@ -20,7 +20,7 @@ function MyForm() {
     var url = urlBaseRequete + "sort=" + selectedSort + "&ord=" + selectedOrder;
 
     if (selectedLanguage != "all") {
-      url += "&language=" + selectedLanguage;
+      url += "&languages=" + [selectedLanguage];
     }
 
     if (author) {

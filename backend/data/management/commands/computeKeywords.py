@@ -18,7 +18,9 @@ class Command(BaseCommand):
             code = book.languages.all()[0].code
             str_pk = str(book.pk)
             chemin_fichier = os.path.join(dossier_books, str_pk + ".txt")
-            with open(chemin_fichier, "r") as fichier:
+            with open(chemin_fichier, "r", encoding='utf-8') as fichier:
+                print(chemin_fichier)
+                print(type(fichier))
                 document = fichier.read()
                     
             texts = document.split("\n\n")
@@ -27,7 +29,7 @@ class Command(BaseCommand):
             for text in texts:
                 doc = nlp[code](text)
                 keywords_doc.extend([token.lemma_.casefold() for token in doc if token.is_alpha and not(token.is_stop)])
-                
+            print(keywords_doc.count("the"))
             dossier_occu = "./keywords/"
             chemin_fichier = os.path.join(dossier_occu, str_pk + ".json")
 
