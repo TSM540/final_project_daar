@@ -1,7 +1,7 @@
 import { useState } from "react";
 import "./essai.css";
 
-const urlBaseRequete = "http://127.0.0.1:8000/server/books/?";
+const urlBaseRequete = "http://localhost:8000/server/books/?";
 
 function MyForm() {
   const [keyword, setKeyword] = useState("");
@@ -40,7 +40,7 @@ function MyForm() {
       mode: "cors",
     })
       .then((response) => response.json())
-      .then((result) => setBookData(result))
+      .then((result) => setBookData({ result: result["result"], suggestion: result["suggestion"] }))
       .catch((error) => console.error("Error fetching the books:", error));
   };
 

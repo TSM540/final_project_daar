@@ -13,8 +13,10 @@ def suggestion(book_ids):
     book_suggestion_id = set()
     number_book_in_suggestion = 0
     
-    for identifiant in book_ids[:3]:  
+    for identifiant in book_ids[:2]:  
         url_requete = construct_url_requete_search(URL_REQUETE_NEIGHBOR) + str(identifiant)
+        print(url_requete)
+        # url_requete = URL_BASE_DATA
         results = requests.get(url_requete)
         if results.status_code != 200:
             continue
@@ -25,7 +27,7 @@ def suggestion(book_ids):
                 book_suggestion.append(book)
                 if number_book_in_suggestion >= NUMBER_SUGGESTION:
                     return book_suggestion
-        
+    print(book_suggestion)
     return book_suggestion
 
 
