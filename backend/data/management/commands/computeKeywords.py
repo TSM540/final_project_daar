@@ -27,6 +27,13 @@ class Command(BaseCommand):
             keywords_doc = []
             
             for text in texts:
+                # print(text)
+                # print(code)
+                # print(nlp[code])
+                # print(nlp[code](text))
+                #  verify only allowed codes are in fr or english
+                if code != 'en' and code != 'fr':
+                    continue    
                 doc = nlp[code](text)
                 keywords_doc.extend([token.lemma_.casefold() for token in doc if token.is_alpha and not(token.is_stop)])
             print(keywords_doc.count("the"))

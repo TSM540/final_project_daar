@@ -24,7 +24,11 @@ class Command(BaseCommand):
                 else:
                     keywords[k].add((book, occ))
            
-                   
+        for k in keywords_code['fr']:
+            key_fr = KeywordsFrench.objects.create(token=k)
+            for (b, occu) in keywords[k]:
+                KeywordBookFrench.objects.create(book=b, occurence=occu, keyword=key_fr)
+                key_fr.books.add(b)              
         for k in keywords_code['en']:      
             key_en = KeywordsEnglish.objects.create(token=k)
             for (b, occu) in keywords[k]:
@@ -32,9 +36,5 @@ class Command(BaseCommand):
                 key_en.books.add(b)
             
             
-        for k in keywords_code['fr']:
-            key_fr = KeywordsFrench.objects.create(token=k)
-            for (b, occu) in keywords[k]:
-                KeywordBookFrench.objects.create(book=b, occurence=occu, keyword=key_fr)
-                key_fr.books.add(b)         
+             
     

@@ -26,7 +26,7 @@ class BooksList(APIView):
         elif sort == 'betweenness':
             results = sort_by_centrality(results, Centrality.BETWEENNESS, ordre)
           
-        results = {"result" : results, "suggestion" : suggestion([b['id'] for b in results])}
+        results = {"result" : results, "suggestions" : suggestion([b['id'] for b in results])}
 
         return Response(results)
 

@@ -6,7 +6,7 @@ import time
 import json
 import os
 
-JACCARD_DISTANCE_THRESHOLD = 0.4
+JACCARD_DISTANCE_THRESHOLD = 0.6
 
 
 
@@ -18,10 +18,19 @@ class Command(BaseCommand):
         l1 = Book.objects.get(pk=pk1)
         l2 = Book.objects.get(pk=pk2)
         
-        Neighbors.objects.create(book=l1, neighbor=l2)
-        Neighbors.objects.create(book=l2, neighbor=l1)
-        self.stdout.write(self.style.SUCCESS('['+time.ctime()+f'] Successfully added the book {pk1} and book {pk2} as neighbor'))
-    
+        print('before')
+
+        # Création ou récupération de l'entrée pour l1
+        neighbor_entry1, created1 = Neighbors.objects.get_or_create(book=l1)
+        neighbor_entry1.neighbors.add(l2)  # Ajout de l2 comme voisin de l1
+        neighbor_entry1.save()
+
+        # Création ou récupération de l'entrée pour l2
+        neighbor_entry2, created2 = Neighbors.objects.get_or_create(book=l2)
+        neighbor_entry2.neighbors.add(l1)  # Ajout de l1 comme voisin de l2
+        neighbor_entry2.save()
+        print('after')
+        self.stdout.write(self.style.SUCCESS(f'[{time.ctime()}] Successfully added the book {pk1} and book {pk2} as neighbors'))
     def handle(self, *args, **options):
         books_occurences = dict()
         #using  json file
@@ -47,6 +56,7 @@ class Command(BaseCommand):
                 if pk2 in book_neighbor or pk == pk2:
                     continue
                 if jaccard_distance(tokens, books_occurences[pk2]) < JACCARD_DISTANCE_THRESHOLD:
+                    print(pk, pk2)
                     self.add_as_neighbor(pk, pk2)
                     if pk2 not in neighbor:
                         neighbor[pk2] = {pk}
