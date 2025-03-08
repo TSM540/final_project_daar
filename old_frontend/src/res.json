@@ -1,0 +1,122 @@
+{
+    "result": [
+        {
+            "id": 84,
+            "title": "Frankenstein; Or, The Modern Prometheus",
+            "authors": [
+                {
+                    "name": "Shelley, Mary Wollstonecraft",
+                    "birth_year": 1797,
+                    "death_year": 1851
+                }
+            ],
+            "subjects": [
+                "Frankenstein's monster (Fictitious character) -- Fiction",
+                "Frankenstein, Victor (Fictitious character) -- Fiction",
+                "Gothic fiction",
+                "Horror tales",
+                "Monsters -- Fiction",
+                "Science fiction",
+                "Scientists -- Fiction"
+            ],
+            "languages": [
+                {
+                    "code": "en"
+                }
+            ],
+            "cover_image": "https://www.gutenberg.org/cache/epub/84/pg84.cover.medium.jpg",
+            "plain_text": "https://www.gutenberg.org/ebooks/84.txt.utf-8",
+            "download_count": 146616
+        },
+        {
+            "id": 41445,
+            "title": "Frankenstein; Or, The Modern Prometheus",
+            "authors": [
+                {
+                    "name": "Shelley, Mary Wollstonecraft",
+                    "birth_year": 1797,
+                    "death_year": 1851
+                }
+            ],
+            "subjects": [
+                "Frankenstein's monster (Fictitious character) -- Fiction",
+                "Frankenstein, Victor (Fictitious character) -- Fiction",
+                "Gothic fiction",
+                "Horror tales",
+                "Monsters -- Fiction",
+                "Science fiction",
+                "Scientists -- Fiction"
+            ],
+            "languages": [
+                {
+                    "code": "en"
+                }
+            ],
+            "cover_image": "https://www.gutenberg.org/cache/epub/41445/pg41445.cover.medium.jpg",
+            "plain_text": "https://www.gutenberg.org/ebooks/41445.txt.utf-8",
+            "download_count": 16313
+        }
+    ],
+    "suggestions": [
+        
+        {
+            "id": 219,
+            "title": "Heart of Darkness",
+            "authors": [
+                {
+                    "name": "Conrad, Joseph",
+                    "birth_year": 1857,
+                    "death_year": 1924
+                }
+            ],
+            "subjects": [
+                "Psychological fiction",
+                "Africa -- Fiction",
+                "Degeneration -- Fiction",
+                "Europeans -- Africa -- Fiction",
+                "Imperialism -- Fiction",
+                "Trading posts -- Fiction"
+            ],
+            "languages": [
+                {
+                    "code": "en"
+                }
+            ],
+            "cover_image": "https://www.gutenberg.org/cache/epub/219/pg219.cover.medium.jpg",
+            "plain_text": "https://www.gutenberg.org/ebooks/219.txt.utf-8",
+            "download_count": 20843
+        },
+        {
+            "id": 768,
+            "title": "Wuthering Heights",
+            "authors": [
+                {
+                    "name": "Brontë, Emily",
+                    "birth_year": 1818,
+                    "death_year": 1848
+                }
+            ],
+            "subjects": [
+                "Psychological fiction",
+                "Domestic fiction",
+                "Love stories",
+                "Foundlings -- Fiction",
+                "Revenge -- Fiction",
+                "Triangles (Interpersonal relations) -- Fiction",
+                "Heathcliff (Fictitious character : Brontë) -- Fiction",
+                "Rejection (Psychology) -- Fiction",
+                "Rural families -- Fiction",
+                "Yorkshire (England) -- Fiction"
+            ],
+            "languages": [
+                {
+                    "code": "en"
+                }
+            ],
+            "cover_image": "https://www.gutenberg.org/cache/epub/768/pg768.cover.medium.jpg",
+            "plain_text": "https://www.gutenberg.org/ebooks/768.txt.utf-8",
+            "download_count": 17401
+        }
+        
+    ]
+}

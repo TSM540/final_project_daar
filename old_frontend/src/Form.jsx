@@ -36,12 +36,19 @@ function MyForm() {
       url += "&keyword=" + keyword + "&keyword_type=" + selectedKeywordType;
     }
 
-    fetch(url, {
-      mode: "cors",
-    })
-      .then((response) => response.json())
-      .then((result) => setBookData({ result: result["result"], suggestion: result["suggestion"] }))
-      .catch((error) => console.error("Error fetching the books:", error));
+    const fetchBooks = async () => {
+      try {
+        const response = await fetch(url, { mode: "cors" });
+        // console.log(response.suggestions);
+        const result = await response.json();
+        console.log(result);
+        setBookData(result);
+      } catch (error) {
+      console.error("Error fetching the books:", error);
+      }
+    };
+
+    fetchBooks();
   };
 
   const styles = {
@@ -261,6 +268,35 @@ function MyForm() {
           </button>
         </div>
         <div className="container">
+  {Object.keys(bookData).map((category) => (
+    <div key={category} style={styles.booksColumn}>
+      <h2>{category.charAt(0).toUpperCase() + category.slice(1)}</h2>
+      {bookData[category].map((book, index) => (
+        <div key={index} style={styles.bookContainer}>
+          <div style={styles.bookDetails}>
+            <h3>{book.title}</h3>
+            <p><strong>Authors:</strong></p>
+            {book.authors.map((author, authorIndex) => (
+              <p key={authorIndex}>
+                {author.name} ({author.birth_year} - {author.death_year})
+              </p>
+            ))}
+            <p><strong>Subjects:</strong> {book.subjects.join(", ")}</p>
+            <p><strong>Language:</strong> {book.languages.map(lang => lang.code).join(", ")}</p>
+            <p><strong>Downloads:</strong> {book.download_count}</p>
+            <a href={book.plain_text} target="_blank" rel="noopener noreferrer">
+              Read the book
+            </a>
+          </div>
+          {book.cover_image && (
+            <img src={book.cover_image} alt={`Cover of ${book.title}`} style={styles.bookImage} />
+          )}
+        </div>
+      ))}
+    </div>
+  ))}
+</div>
+        {/* <div className="container">
           <div style={styles.booksColumn}>
             <h2>List of Books</h2>
             {bookData["result"].map((book, index) => (
@@ -303,7 +339,7 @@ function MyForm() {
               </div>
             ))}
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );
