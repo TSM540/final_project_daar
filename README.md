@@ -41,8 +41,8 @@ python manage.py createGraphJaccard
 ### 2.2. Workflow of `./backend/data`
 The `./backend/data` directory contains all the logic related to data processing, keyword computation, and similarity graph creation.
 #### 2.2.1. `initBooks`
-* Fetches book data from the Gutenberg API.
-* Extracts metadata such as title, author, language, and subjects, and the link to the book (gutnberg/**/id.txt).
+* Fetches book data from the Gutendex API `https://gutendex.com/books/`.
+* Extracts metadata such as title, author, language, and subjects, and the link to the book  eg(`https://www.gutenberg.org/cache/epub/26184/pg26184.txt`).
 * Stores the data of the books in the database.
 * *** Stores The book in the *** ```./backend/books```, folder with the format ```gutenberg_book_id.txt``` for each file, this approach helps simplify the calculations for the keywords, creation of neighbhoor from the jaccard distance, and makes sure that the database is filled only the with relevant information to the book but not the book itself, we make also sure that 
 #### 2.2.2. `computeKeywords`
