@@ -7,13 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Loader from "@/components/Loader";
 // import { DialogTitle } from "@radix-ui/react-dialog";
 // import Image from "next/image";
 
 const urlBaseRequete = "http://localhost:8000/server/books/?";
 
 // Simple Search Form Component
-function SimpleSearchForm({ onSearch }: { onSearch: (data: any) => void }) {
+function SimpleSearchForm({ onSearch,loadingState }: { onSearch: (data: any) => void ,loadingState: (loading: boolean) => void}) {
   const [keyword, setKeyword] = useState("");
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
@@ -29,12 +30,14 @@ function SimpleSearchForm({ onSearch }: { onSearch: (data: any) => void }) {
     if (keyword) url += `&keyword=${keyword}`;
     const fetchBooks = async () => {
       try {
+        loadingState(true);
         const response = await fetch(url, { mode: "cors" });
         const result = await response.json();
-        console.log(result);
         onSearch(result);
       } catch (error) {
       console.error("Error fetching the books:", error);
+      }finally{
+        loadingState(false);
       }
     };
 
@@ -94,7 +97,7 @@ function SimpleSearchForm({ onSearch }: { onSearch: (data: any) => void }) {
 }
 
 // Advanced Search Form Component
-function AdvancedSearchForm({ onSearch }: { onSearch: (data: any) => void }) {
+function AdvancedSearchForm({ onSearch,setLoading }: { onSearch: (data: any) => void,setLoading: (loading: boolean) => void}) {
   const [keyword, setKeyword] = useState("");
   const [title, setTitle] = useState("");
   const [selectedTitleType, setSelectedTitleType] = useState("classique");
@@ -124,10 +127,20 @@ function AdvancedSearchForm({ onSearch }: { onSearch: (data: any) => void }) {
       url += "&keyword=" + keyword + "&keyword_type=" + selectedKeywordType;
     }
 
-    fetch(url)
-      .then((res) => res.json())
-      .then((data) => onSearch(data))
-      .catch((error) => console.error("Error fetching books:", error));
+    const fetchBooks = async () => {
+      try {
+            setLoading(true);
+            const response = await fetch(url, { mode: "cors" });
+            const result = await response.json();
+            onSearch(result);
+      } catch (error) {
+            console.error("Error fetching books:", error);
+      } finally {
+            setLoading(false);
+      }
+    };
+
+    fetchBooks();
   };
 
   return (
@@ -255,11 +268,10 @@ function AdvancedSearchForm({ onSearch }: { onSearch: (data: any) => void }) {
 function Book({ book }: { book: any }) {
   return (
     <Dialog>
-      <DialogTrigger asChild>
+      <DialogTrigger asChild className=" transition duration-300 ease-in-out hover:scale-[105%]">
         <div className="p-4 border rounded-lg cursor-pointer shadow-md hover:shadow-lg transition-shadow">
           <div className="h-40 w-32 relative mb-2 mx-auto">
             {book.cover_image ? (
-              // Use a regular img tag for external images instead of next/image
               // eslint-disable-next-line @next/next/no-img-element
               <img 
                 src={book.cover_image} 
@@ -335,7 +347,7 @@ function Book({ book }: { book: any }) {
 
 export default function Home() {
   const [bookData, setBookData] = useState({ result: [], suggestions: [] });
-  
+  const [loading, setLoading] = useState(false);
   // Log the data to see its structure
 
   return (
@@ -355,16 +367,23 @@ export default function Home() {
           </div>
           
           <TabsContent value="simple" className="flex justify-center">
-            <SimpleSearchForm onSearch={setBookData} />
+            <SimpleSearchForm onSearch={setBookData} loadingState={setLoading} />
           </TabsContent>
           
           <TabsContent value="advanced" className="flex justify-center">
-            <AdvancedSearchForm onSearch={setBookData} />
+            <AdvancedSearchForm onSearch={setBookData} setLoading={setLoading}/>
           </TabsContent>
         </Tabs>
-        
+         {/* Loading indicator */}
+        {loading && (
+          <div className="mt-8 flex justify-center items-center">
+            {/* <div className="p-4 rounded-lg bg-primary/10 text-primary font-medium"> */}
+              <Loader />
+            {/* </div> */}
+          </div>
+        )}
         <div className="mt-12 space-y-10 ">
-          {bookData.result && bookData.result.length > 0 && (
+          {!loading  &&bookData.result && bookData.result.length > 0 && (
             <div>
               <h2 className="text-2xl font-bold mb-4">Results</h2>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
@@ -375,7 +394,7 @@ export default function Home() {
             </div>
           )}
           
-          {bookData.suggestions && bookData.suggestions.length > 0 && (
+          {!loading && bookData.suggestions && bookData.suggestions.length > 0 && (
             <div>
               <h2 className="text-2xl font-bold mb-4">You Might Also Like</h2>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
@@ -385,6 +404,31 @@ export default function Home() {
               </div>
             </div>
           )}
+           {!loading && bookData.suggestions && bookData.suggestions.length ===0 
+            && bookData.result && bookData.result.length === 0 && (
+              <div className="mt-8 flex flex-col justify-center items-center">
+                <div className="p-4 rounded-lg bg-primary/10 text-primary font-medium">
+                  No books found
+               
+                </div>
+                <div className="mt-20 mx-auto w-full max-w-sm rounded-md border border-gray-500 p-4">
+                <div className="flex animate-pulse space-x-4">
+                  {/* <div className="size-10 rounded-full bg-gray-200"></div> */}
+                  <div className="flex-1 space-y-6 py-1">
+                    <div className="h-2 rounded bg-gray-200"></div>
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="col-span-2 h-2 rounded bg-gray-200"></div>
+                        <div className="col-span-1 h-2 rounded bg-gray-200"></div>
+                      </div>
+                      <div className="h-2 rounded bg-gray-200"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              </div>
+            )
+           }
         </div>
       </div>
     </div>
