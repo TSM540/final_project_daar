@@ -94,6 +94,7 @@ in a summary :
             -   Occurrence counts
             -   Keywords
         -  Now each keyword has its unique id.
+    
 
 
 
@@ -108,6 +109,7 @@ in a summary :
     -   Compares each book with all other books using the Jaccard distance function.
     -   When the distance is below the threshold (indicating similarity), connects books as neighbors.
     -   Creates bi-directional neighbor relationships in the database.
+    - Creates an index table mapping each keyword id, to its book id, and with its occurence, the index table is created for each language eg `keywordbook_${language}`
 
 #### 2.3. Jaccard Similarity
 
@@ -234,3 +236,5 @@ npm run dev
 ```
 default host is ```localhost:3000``` 
 
+## 6. Results 
+- each language had it own index table, a total of 95k tokens in both english and french.
