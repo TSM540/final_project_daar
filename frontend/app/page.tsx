@@ -5,9 +5,10 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Loader from "@/components/Loader";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 // import { DialogTitle } from "@radix-ui/react-dialog";
 // import Image from "next/image";
 
@@ -268,6 +269,9 @@ function AdvancedSearchForm({ onSearch,setLoading }: { onSearch: (data: any) => 
 function Book({ book }: { book: any }) {
   return (
     <Dialog>
+      <VisuallyHidden>
+                  <DialogTitle>Nav Content</DialogTitle>
+                </VisuallyHidden>
       <DialogTrigger asChild className=" transition duration-300 ease-in-out hover:scale-[105%]">
         <div className="p-4 border rounded-lg cursor-pointer shadow-md hover:shadow-lg transition-shadow">
           <div className="h-40 w-32 relative mb-2 mx-auto">
@@ -291,7 +295,7 @@ function Book({ book }: { book: any }) {
         </div>
       </DialogTrigger>
       
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md" aria-description="Book details">
         <div className="space-y-4">
           <h2 className="text-2xl font-bold">{book.title}</h2>
           
