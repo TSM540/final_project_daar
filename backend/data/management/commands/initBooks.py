@@ -63,7 +63,6 @@ def put_book_db(book):
         book_in_db.authors.add(author)
 
     ''' Make/update the languages. '''
-    
     if book['languages']:  # Ensure the list is not empty
         first_language = book['languages'][0]  # Take only the first language
         language_in_db, created = Language.objects.get_or_create(code=first_language)
