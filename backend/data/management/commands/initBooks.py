@@ -63,18 +63,7 @@ def put_book_db(book):
         book_in_db.authors.add(author)
 
     ''' Make/update the languages. '''
-
-    # languages = []
-    # for language in book['languages']:
-    #     language_in_db = Language.objects.filter(code=language)
-    #     if language_in_db.exists():
-    #         language_in_db = language_in_db[0]
-    #     else:
-    #         language_in_db = Language.objects.create(code=language)
-    #     languages.append(language_in_db)
-
-    # for language in languages:
-    #      book_in_db.languages.add(language)
+    
     if book['languages']:  # Ensure the list is not empty
         first_language = book['languages'][0]  # Take only the first language
         language_in_db, created = Language.objects.get_or_create(code=first_language)

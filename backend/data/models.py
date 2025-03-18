@@ -10,7 +10,6 @@ class Book(models.Model):
     gutenberg_id = models.PositiveIntegerField(primary_key=True)
     authors = models.ManyToManyField('Person')
     download_count = models.PositiveIntegerField(blank=True, null=True)
-    # language = models.ForeignKey(Language, on_delete=models.CASCADE, null=True)
     languages = models.ManyToManyField('Language')
     subjects = models.ManyToManyField('Subject')
     title = models.CharField(blank=True, max_length=1024, null=True)
