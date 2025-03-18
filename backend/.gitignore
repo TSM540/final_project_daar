@@ -68,7 +68,8 @@ wheels/
 *.egg 
 *.manifest 
 *.spec 
-**/books
+**/books/*.txt
+**/keywords/*.json
 
 # Installer logs 
 pip-log.txt 
