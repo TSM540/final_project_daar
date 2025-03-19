@@ -14,11 +14,11 @@ class BookViewSet(APIView):
     def get(self, request, format=None):
         queryset = Book.objects.exclude(download_count__isnull=True)
         queryset = queryset.exclude(title__isnull=True)
-        
-        language = request.GET.get('language')
+        print(request)
+        language = request.GET.get('languages')
         if language is not None:
-            queryset = queryset.filter(language__code=language)
-        
+            queryset = queryset.filter(languages__code=language)
+        print(language)
         search_name_author = request.GET.get('author_name')
         if search_name_author is not None:
             search_name_authors_type = request.GET.get('author_name_type')
@@ -40,9 +40,9 @@ class BookViewSet(APIView):
                 queryset = queryset.filter(title__regex=search_title)
                 
         search_keyword = request.GET.get('keyword')
-
+        print(KeywordsEnglish.objects.filter(keywordbookenglish__keyword__token__regex=search_keyword))
         if search_keyword is not None:
-            search_keywords_type = request.GET.get('keyword_type', 'classique')
+            search_keywords_type = request.GET.get('keyword_type')
             search_method = 'icontains' if search_keywords_type == 'classique' else 'regex'
             
             # Define language-specific filters
@@ -52,6 +52,7 @@ class BookViewSet(APIView):
             }
             
             # Apply language-specific filter or both if language is not specified
+            print(filters)
             if language in filters:
                 queryset = queryset.filter(**filters[language])
             else:
