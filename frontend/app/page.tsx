@@ -225,7 +225,6 @@ function AdvancedSearchForm({ onSearch,setLoading }: { onSearch: (data: any) => 
               <SelectValue placeholder="Language" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All</SelectItem>
               <SelectItem value="fr">French</SelectItem>
               <SelectItem value="en">English</SelectItem>
             </SelectContent>

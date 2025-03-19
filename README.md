@@ -264,11 +264,13 @@ Therefore, **the maximum possible number of edges in this graph is 603,351**.
         -   Calculates centrality measures (closeness or betweenness) using graph algorithms.
         -   Sorts books based on their calculated centrality scores.
         -   Returns the sorted list of books.
+   
 -   **Graph Representation:**
     -   Books are represented as nodes in the graph.
     -   Edges between nodes represent similarity between books.
     -   **Node Weight:** In a weighted graph, the weight of an edge represents the degree of similarity between two books, calculated by the number of shared subjects.
     -   **Adding Neighbors:** Neighbors are added based on the intersection of the subject lists of the books. If the intersection is not empty, an edge is created between the corresponding nodes.
+
 
 #### `urls.py`: URL Routing
 
@@ -305,6 +307,11 @@ Therefore, **the maximum possible number of edges in this graph is 603,351**.
 -   **Functionality:**
     -   Provides functions to compute both closeness and betweenness centrality measures.
     -   Uses graph data structures from `graph.py`.
+#### `Caching strategy` 
+- Implemented multi-level caching for different parts of the application
+- Cached API responses, neighbors data, and centrality calculations
+- Used unique cache keys based on query parameters
+- Added reasonable timeouts for cached items
 ## 2.4. Server Startup
 in the ```./backend``` folder, execute :
 ```bash

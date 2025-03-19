@@ -4,6 +4,7 @@ from rest_framework.viewsets import ModelViewSet
 from django.http import Http404
 from data.models import Book, Neighbors, KeywordsEnglish, KeywordsFrench
 from data.serializers import BookSerializer
+from django.db.models import Q
 
 # Create your views here.
 
@@ -39,38 +40,27 @@ class BookViewSet(APIView):
                 queryset = queryset.filter(title__regex=search_title)
                 
         search_keyword = request.GET.get('keyword')
+
         if search_keyword is not None:
+            search_keywords_type = request.GET.get('keyword_type', 'classique')
+            search_method = 'icontains' if search_keywords_type == 'classique' else 'regex'
             
-            search_keywords_type = request.GET.get('keyword_type')
-            search_keywords_type = "classique" if search_keywords_type is None else search_keywords_type
+            # Define language-specific filters
+            filters = {
+                'en': {'keywordbookenglish__keyword__token__{}'.format(search_method): search_keyword},
+                'fr': {'keywordbookfrench__keyword__token__{}'.format(search_method): search_keyword},
+            }
             
-            if language is not None:
-                if language == 'en':
-                    if search_keywords_type == "classique":
-                        queryset = queryset.filter(keywordsenglish__token__icontains=search_keyword)
-                    else:
-                        queryset = queryset.filter(keywordsenglish__token__regex=search_keyword)
-                elif language == 'fr':
-                    if search_keywords_type == "classique":
-                        queryset = queryset.filter(keywordsfrench__token__icontains=search_keyword)
-                    else:
-                         queryset = queryset.filter(keywordsfrench__token__regex=search_keyword)
-                else:
-                    if search_keywords_type == "classique":
-                        queryset = queryset.filter(keywordsfrench__token__icontains=search_keyword)
-                        queryset = queryset.filter(keywordsenglish__token__icontains=search_keyword)
-                    else:
-                        queryset = queryset.filter(keywordsfrench__token__regex=search_keyword)
-                        queryset = queryset.filter(keywordsenglish__token__regex=search_keyword)
-                
+            # Apply language-specific filter or both if language is not specified
+            if language in filters:
+                queryset = queryset.filter(**filters[language])
             else:
-                if search_keywords_type == "classique":
-                    queryset = queryset.filter(keywordsfrench__token__icontains=search_keyword)
-                    queryset = queryset.filter(keywordsenglish__token__icontains=search_keyword)
-                else:
-                    queryset = queryset.filter(keywordsfrench__token__regex=search_keyword)
-                    queryset = queryset.filter(keywordsenglish__token__regex=search_keyword)
-        
+                # For other languages or no language specified, search in both English and French
+                english_filter = Q(**{'keywordbookenglish__keyword__token__{}'.format(search_method): search_keyword})
+                french_filter = Q(**{'keywordbookfrench__keyword__token__{}'.format(search_method): search_keyword})
+                queryset = queryset.filter(english_filter | french_filter)
+
+        queryset = queryset.distinct()
         sort = request.GET.get('sort')
         if sort == 'download_count':
             ord = request.GET.get('order')
