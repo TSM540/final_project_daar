@@ -57,7 +57,7 @@ class Keywords(models.Model):
 class KeywordBook(models.Model):
     book = models.ForeignKey(Book, on_delete=models.CASCADE)
     occurence = models.PositiveIntegerField()
-    
+    tfidf_score = models.FloatField(default=0.0)  # New field to store TF-IDF
     class Meta:
         abstract = True
         
