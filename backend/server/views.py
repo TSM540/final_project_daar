@@ -20,10 +20,10 @@ class BooksList(APIView):
         cache_key = f"books_list_{request.get_full_path()}"
         cached_results = cache.get(cache_key)
         
-        if cached_results:
-            execution_time = time.time() - start_time
-            print(f"BookList returned cached results in {execution_time:.4f} seconds")
-            return Response(cached_results)
+        # if cached_results:
+        #     execution_time = time.time() - start_time
+        #     print(f"BookList returned cached results in {execution_time:.4f} seconds")
+        #     return Response(cached_results)
         
         # Create URL for data API
         url = request.build_absolute_uri()
