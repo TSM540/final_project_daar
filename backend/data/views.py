@@ -7,20 +7,52 @@ from data.serializers import BookSerializer
 import numpy as np
 from collections import defaultdict
 from django.db.models import Q
-
+import time
 # Create your views here.
 
 
 class BookViewSet(APIView):
     
     def get(self, request, format=None):
+        start_time = time.time()
+        
+        # Call the processing function
+        queryset = self.process_book_query(request)
+        
+        # Serialize and return the response
+        serializer = BookSerializer(queryset, many=True)
+        
+        end_time = time.time()
+        execution_time = end_time - start_time
+        print(f"BookViewSet query execution time: {execution_time:.4f} seconds")
+        
+        return Response(serializer.data)
+    
+    def process_book_query(self, request):
+        # Initialize base queryset
         queryset = Book.objects.exclude(download_count__isnull=True)
         queryset = queryset.exclude(title__isnull=True)
-        print(request)
+        
+        # Process language filter
         language = request.GET.get('languages')
         if language is not None:
             queryset = queryset.filter(languages__code=language)
-        # print(language
+        
+        # Process author name filter
+        queryset = self._filter_by_author(request, queryset)
+        
+        # Process title filter
+        queryset = self._filter_by_title(request, queryset)
+        
+        # Process keyword filter
+        queryset = self._filter_by_keyword(request, queryset, language)
+        
+        # Apply sorting
+        queryset = self._apply_sorting(request, queryset)
+        
+        return queryset.distinct()
+    
+    def _filter_by_author(self, request, queryset):
         search_name_author = request.GET.get('author_name')
         if search_name_author is not None:
             search_name_authors_type = request.GET.get('author_name_type')
@@ -30,19 +62,22 @@ class BookViewSet(APIView):
                 queryset = queryset.filter(authors__name__icontains=search_name_author)
             else:
                 queryset = queryset.filter(authors__name__regex=search_name_author)
-                
+        return queryset
+    
+    def _filter_by_title(self, request, queryset):
         search_title = request.GET.get('title')
         if search_title is not None:
             search_title_type = request.GET.get('title_type')
-            
             search_title_type = "classique" if search_title_type is None else search_title_type
+            
             if search_title_type == "classique":
                 queryset = queryset.filter(title__icontains=search_title)
             else:
                 queryset = queryset.filter(title__regex=search_title)
-                
+        return queryset
+    
+    def _filter_by_keyword(self, request, queryset, language):
         search_keyword = request.GET.get('keyword')
-        # print(KeywordsEnglish.objects.filter(keywordbookenglish__keyword__token__regex=search_keyword))
         if search_keyword is not None:
             search_keywords_type = request.GET.get('keyword_type')
             search_method = 'icontains' if search_keywords_type == 'classique' else 'regex'
@@ -54,7 +89,6 @@ class BookViewSet(APIView):
             }
             
             # Apply language-specific filter or both if language is not specified
-            # print(filters)
             if language in filters:
                 queryset = queryset.filter(**filters[language])
             else:
@@ -62,8 +96,9 @@ class BookViewSet(APIView):
                 english_filter = Q(**{'keywordbookenglish__keyword__token__{}'.format(search_method): search_keyword})
                 french_filter = Q(**{'keywordbookfrench__keyword__token__{}'.format(search_method): search_keyword})
                 queryset = queryset.filter(english_filter | french_filter)
-
-        queryset = queryset.distinct()
+        return queryset
+    
+    def _apply_sorting(self, request, queryset):
         sort = request.GET.get('sort')
         if sort == 'download_count':
             ord = request.GET.get('order')
@@ -71,11 +106,8 @@ class BookViewSet(APIView):
             if ord == "descending":
                 queryset = queryset.order_by('-download_count')
             else:
-                queryset = queryset.order_by('download_count')    
-            
-        queryset.distinct()
-        serializer = BookSerializer(queryset, many=True)
-        return Response(serializer.data)
+                queryset = queryset.order_by('download_count')
+        return queryset
 
         
     
@@ -86,6 +118,7 @@ class NeighboorsBook(APIView):
         except Book.DoesNotExist:
             raise Http404
     def get(self, request, pk, format=None):
+        start_time = time.time()  # Start timing
         book = self.get_object(pk)
         try:
             book_voisins = Neighbors.objects.get(book=book)
@@ -94,6 +127,8 @@ class NeighboorsBook(APIView):
 
         voisins = book_voisins.neighbors.all()
         serializer = BookSerializer(voisins, many=True)
+        execution_time = time.time() - start_time
+        print(f"NeighboorsBook query execution time: {execution_time:.4f} seconds")
         return Response(serializer.data)    
     
 class CosinusViewSet(APIView):

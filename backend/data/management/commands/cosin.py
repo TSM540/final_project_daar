@@ -4,6 +4,7 @@ from django.db.models import F, Q
 from tqdm import tqdm
 from collections import defaultdict
 from data.models import Book, KeywordsEnglish, KeywordsFrench, KeywordBookEnglish, KeywordBookFrench
+import time
 # This is just a test file on your local machine, use it to test the cosine similarity between keywordds
 # a good example would be to use sargon, comparing it to a normal search that takes  about 5-9 seconds depending on the database, this cosine similarity search should take about 1-2 seconds
 class Command(BaseCommand):
@@ -31,11 +32,12 @@ class Command(BaseCommand):
         parser.add_argument(
             '--min-score',
             type=float,
-            default=0.3,
+            default=0.4,
             help='Minimum similarity score threshold'
         )
     
     def handle(self, *args, **options):
+        start_time = time.time() 
         keyword = options['keyword'].lower()
         language = options['language']
         top_n = options['top']
@@ -94,5 +96,6 @@ class Command(BaseCommand):
             
             if data['count'] > 5:
                 self.stdout.write(f"  ... and {data['count'] - 5} more books")
-        
+        execution_time = time.time() - start_time
+        print(f"Cosin query execution time: {execution_time:.4f} seconds")
         self.stdout.write(self.style.SUCCESS("\n✅ Search completed!"))

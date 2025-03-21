@@ -2,68 +2,75 @@ from collections import deque
 from server.graph import WeightedGraph, UnweightedGraph
 from enum import Enum, auto
 import time
+from django.core.cache import cache
 
 class Centrality(Enum):
     CLOSENESS = auto()
     BETWEENNESS = auto()
 
-def compute_betweenness_centrality(G: UnweightedGraph, max_nodes=50):
-    """
-    Compute betweenness centrality with optimizations:
-    1. Limit to max_nodes most connected nodes
-    2. Early termination for large graphs
-    3. Skip isolated nodes
-    """
-    # If graph is too large, use a sample
-    nodes = G.nodes
-    if len(nodes) > max_nodes:
-        # Sort nodes by degree (number of connections) and take top max_nodes
-        nodes = sorted(nodes, key=lambda n: len(n.neighbors), reverse=True)[:max_nodes]
-    
-    # Initialize centrality scores
-    C_B = {w: 0 for w in G.nodes}
-    
-    # Set a timeout for processing
+def compute_betweenness_centrality(G: UnweightedGraph):
+    """Compute betweenness centrality with optimizations and timeout"""
     start_time = time.time()
-    timeout = 5  # seconds
+    max_time = 2.0  # 2 second timeout
     
-    # Process each node as a source
-    for i, s in enumerate(nodes):
-        # Skip isolated nodes
+    # For large graphs, process only a subset of nodes
+    nodes_to_process = G.nodes
+    if len(G.nodes) > 30:
+        # Sort nodes by connectivity and process most connected first
+        nodes_to_process = sorted(G.nodes, key=lambda n: len(n.neighbors), reverse=True)[:30]
+    
+    C_B = {w: 0 for w in G.nodes}
+    nodes_processed = 0
+    
+    for s in nodes_to_process:
+        # Skip isolated nodes - they don't contribute to betweenness
         if not s.neighbors:
             continue
             
-        # Check timeout
-        if time.time() - start_time > timeout:
-            print(f"Timeout reached after processing {i} nodes")
+        # Check timeout every few nodes
+        nodes_processed += 1
+        if nodes_processed % 5 == 0 and time.time() - start_time > max_time:
+            print(f"Betweenness calculation timeout after {nodes_processed} nodes")
             break
             
-        # Initialize data structures
         S = deque()
-        P = {w: [] for w in G.nodes}
-        sigma = {w: 1 if w == s else 0 for w in G.nodes}
-        d = {w: 0 if w == s else -1 for w in G.nodes}
+        P = dict()
+        sigma = dict()
+        d = dict()
         
-        Q = deque([s])
+        for w in G.nodes:
+            if w == s:
+                sigma[w] = 1
+                d[w] = 0
+            else:
+                sigma[w] = 0
+                d[w] = -1
+            P[w] = []
         
-        # BFS to compute shortest paths
-        while Q:
+        Q = deque()
+        Q.append(s)
+        
+        while len(Q) != 0:
             v = Q.popleft()
             S.append(v)
             
-            for w in v.neighbors:
+            # For nodes with many neighbors, limit processing
+            neighbors_to_process = v.neighbors
+            if len(v.neighbors) > 20:
+                neighbors_to_process = v.neighbors[:20]
+                
+            for w in neighbors_to_process:
                 if d[w] < 0:
                     Q.append(w)
                     d[w] = d[v] + 1
                 
                 if d[w] == d[v] + 1:
-                    sigma[w] += sigma[v]
+                    sigma[w] = sigma[w] + sigma[v]
                     P[w].append(v)
         
-        # Accumulate dependencies
         delta = {v: 0 for v in G.nodes}
         
-        while S:
+        while len(S) != 0:
             w = S.pop()
             for v in P[w]:
                 delta[v] += (sigma[v] / sigma[w]) * (1 + delta[w])
@@ -73,29 +80,32 @@ def compute_betweenness_centrality(G: UnweightedGraph, max_nodes=50):
     # Assign centrality measures to nodes
     for w in G.nodes:
         w.centrality_measure = C_B[w]
+    
+    print(f"Betweenness centrality calculation completed in {time.time() - start_time:.4f} seconds")
 
-def compute_closeness_centrality(G: WeightedGraph, max_nodes=50):
-    """
-    Optimized closeness centrality computation
-    """
+def compute_closeness_centrality(G: WeightedGraph):
+    """Optimized closeness centrality calculation with early termination for large graphs"""
+    start_time = time.time()
+    
     n = len(G.nodes)
-    
-    # For small graphs, process all nodes
-    # For large graphs, focus on most connected nodes
-    if n > max_nodes:
-        nodes = sorted(G.nodes, key=lambda n: len(n.neighbors), reverse=True)[:max_nodes]
-    else:
-        nodes = G.nodes
-    
-    # Process each node
-    for node in nodes:
+    for node in G.nodes:
         # Skip isolated nodes
         if not node.neighbors:
             node.centrality_measure = 0
             continue
             
-        # Calculate total distance
-        distance = sum(node.neighbors.values())
-        
+        # For nodes with many connections, approximate using subset
+        if len(node.neighbors) > 20:
+            # Take 20 most important connections (lowest weight = closest)
+            top_neighbors = dict(sorted(node.neighbors.items(), key=lambda x: x[1])[:20])
+            distance = sum(top_neighbors.values())
+            # Scale distance proportionally to account for missing connections
+            scaling_factor = len(node.neighbors) / len(top_neighbors)
+            distance = distance * scaling_factor
+        else:
+            distance = sum(node.neighbors.values())
+            
         # Compute closeness centrality
         node.centrality_measure = 0 if distance == 0 else (n - 1) / distance
+    
+    print(f"Closeness centrality calculation completed in {time.time() - start_time:.4f} seconds")

@@ -11,5 +11,4 @@ urlpatterns = [
     path(construct_url_data(URL_SEARCH_BOOKS), views.BookViewSet.as_view()),
     path(construct_url_data(URL_NEIGHBOR), views.NeighboorsBook.as_view()),
     path('data/books/keywords/cosine-similarity/', views.CosinusViewSet.as_view()),
-    # path('api/books/<int:book_id>/similar/', views.BookSimilarityView.as_view(), name='book-similarity'),
 ]

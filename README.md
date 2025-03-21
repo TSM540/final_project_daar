@@ -49,10 +49,13 @@ python manage.py initBooks
 python manage.py computeKeywords
 python manage.py addKeywords
 python manage.py createGraphJaccard
+python manage.py tfidf
+python manage.py cosin keyword [--langauage {string,default= both} --top {int, default=10} --min-score {float,default=0.4}]
 ```
 ### 2.2. Workflow of `./backend/data`
 The `./backend/data` directory contains all the logic related to data processing, keyword computation, and similarity graph creation.
 #### 2.2.1. `Commands`
+ - ***Disclaimer*** : it's cruicial that  these commands are executed in order, one after the other
 ##### 2.2.1.1. `initBooks`
 * Fetches book data from the Gutendex API `https://gutendex.com/books/` using `5000` Threads.
 * we also make sure to only add french and english books.
@@ -137,7 +140,25 @@ at the index :
     -   Compares each book with all other books using the Jaccard distance function.
     -   When the distance is below the threshold (indicating similarity), connects books as neighbors.
     -   Creates bi-directional neighbor relationships in the database.
-##### 2.2.1.5 Number of tokens, Index Table size 
+##### 2.2.1.5. `tfidf`
+    - creates the TF-IDF for each keyword 
+##### 2.2.1.5. `cosin`
+- This script serves as a local test for improving book search speed using cosine similarity
+1. **Command-Line Arguments**:
+   - `keyword` (str): The keyword to search for (e.g., "sargon").
+   - `--language` (str): Language selection (`english`, `french`, or `both`).
+   - `--top` (int): Number of top similar books to return (default: 10).
+   - `--min-score` (float): Minimum similarity threshold (default: 0.4)
+2. **Search Process**:
+   - Finds matching keywords in `KeywordsEnglish` and `KeywordsFrench` models.
+   - Retrieves books linked to these keywords from `Book` via `KeywordBookEnglish` or `KeywordBookFrench`.
+   - Groups books by keyword and displays search results.
+3. **Output & Performance**:
+   - Displays found keywords and the number of books associated with each.
+   - Shows up to 5 books per keyword, with an indicator if more exist.
+   - Measures and prints execution time for performance comparison.
+
+##### 2.2.1.7 `Number of tokens, Index Table size `
  - English 
     - number of tokens : 36k 
     - index table size : 580k rows
@@ -233,37 +254,49 @@ Therefore, **the maximum possible number of edges in this graph is 603,351**.
         -   Title search (classic or regex).
         -   Keyword search with language specification.
         -   Download count sorting.
-    -   `data/books/neighbors/<int:pk>`: Returns neighbors of a given book:
+    -   `data/books/neighbors/<int:pk>`: Returns neighbors of a given book, using either betweeness or closeness centrality  :
         -   Retrieves neighbor relationships from the database.
+        -   applies the centrality method.
         -   Returns detailed book information for all neighbors.
+        
+    -   `data/books/keywords/cosine-similarity/` : returns neighbhors using cosine similarity
     -   `server/books/`: General book-related operations.
 
 ### 2.3. Workflow of `./backend/server`
 
 #### `views.py`: API Endpoint for Book Lists
 
--   **Purpose:** Handles API requests to retrieve and sort book lists, and provides book suggestions.
--   **Workflow:**
-    1.  Receives a request to `/server/books/`.
-    2.  Forwards the request (with URL modification) to the `/data/books/` API to fetch book data.
-    3.  Parses query parameters for sorting (by centrality) and order.
-    4.  If sorting is requested, utilizes `sort.py` to sort the books using graph-based centrality measures.
-    5.  Generates book suggestions using `sort.py`.
-    6.  Returns a JSON response containing the sorted book list and suggestions.
+- ***Purpose***: Handles API requests to retrieve and sort book lists, and provides book suggestions.
+- ***Workflow***:
+1. Receives a request to `/server/books/`.
+2. Checks for cached results using request parameters as the cache key.
+3. Forwards the request (with URL modification) to the `/data/books/` API to fetch book data.
+4. Parses query parameters for sorting (by centrality) and order.
+5. If sorting is requested, implements different approaches based on dataset size:
+    - For small datasets (≤20 items): Calculates immediately.
+    - For medium datasets (21-50 items): Processes in a background thread.
 
+
+6. Generates book suggestions with optimized caching and timeout controls.
+7. Returns a JSON response containing the sorted book list and suggestions.
 #### `sort.py`: Sorting and Suggestion Logic
 
 -   **Purpose:** Implements sorting based on graph centrality and generates book suggestions.
 -   **Workflow:**
     1.  **Suggestions:**
-        -   Retrieves neighbor books from the `/data/books/neighbors/` API for the top books in the list.
-        -   Filters out books already in the list or suggestion list.
-        -   Returns a list of unique suggested books.
+        -   Checks cache for existing suggestion results.
+        -   Processes only the first 2 books from the list.
+        -   Retrieves neighbor books from the `/data/books/neighbors/` API.
+        -   Uses per-book caching to optimize network requests.
+        -   Implements request timeout to prevent performance bottlenecks.
+        -   Returns a list of unique suggested books (up to 10).
     2.  **Sorting by Centrality:**
+        -   Checks cache for existing centrality calculations.
         -   Constructs a graph (weighted or unweighted) based on book subject similarities.
-        -   Calculates centrality measures (closeness or betweenness) using graph algorithms.
+        -   Calculates centrality measures using standard or simplified algorithms.
         -   Sorts books based on their calculated centrality scores.
-        -   Returns the sorted list of books.
+        -   Caches results for 24 hours.
+        -   Returns the sorted list of books
    
 -   **Graph Representation:**
     -   Books are represented as nodes in the graph.
@@ -299,11 +332,14 @@ Therefore, **the maximum possible number of edges in this graph is 603,351**.
 
 -   **Purpose:** Implements algorithms for calculating closeness and betweenness centrality.
 -   **Closeness Centrality:**
-    -   Calculates the sum of edge weights to all other nodes.
-    -   The closeness centrality is inversely proportional to the sum of these weights.
+        - For nodes with many connections, approximates using top 20 closest connections.
+        - Scales distance proportionally to account for missing connections.
+        - The closeness centrality is inversely proportional to the sum of these weights.
 -   **Betweenness Centrality:**
-    -   Calculates the number of shortest paths passing through a node.
-    -   Uses Brandes' algorithm for efficient calculation.
+    - For large graphs, processes only top 30 most connected nodes.
+    - For nodes with many neighbors, limits processing to top 20 neighbors.
+    - Implements timeout control (2 seconds) to prevent excessive calculation time.
+    - Uses Brandes' algorithm with optimizations for efficient calculation.
 -   **Functionality:**
     -   Provides functions to compute both closeness and betweenness centrality measures.
     -   Uses graph data structures from `graph.py`.
@@ -312,7 +348,9 @@ Therefore, **the maximum possible number of edges in this graph is 603,351**.
 - Cached API responses, neighbors data, and centrality calculations
 - Used unique cache keys based on query parameters
 - Added reasonable timeouts for cached items
-## 2.4. Server Startup
+## 2.4. Results :
+- Here we tried comparing The betweeness & closness & cosin.
+## 2.5. Server Startup
 in the ```./backend``` folder, execute :
 ```bash
 python manage.py runserver
