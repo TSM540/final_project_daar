@@ -1,15 +1,17 @@
-# MoteurRecherche
-DAAR | master 2 STL sorbonne université 
+# Moteur de recherche de livre GUTENBERG
+- Salim Tabellout
+- Yanis Tabellout
 # 1. Installation
+
 ### 1.1. Windows
-Place yourself in the root folder
+Place yourself in the backend folder
 ```bash   
 python -m venv env
 ./env/Scripts/activate
 pip install -r req.txt
 ```
 ### 1.2. Macos/Linux
-Place yourself in the root folder
+Place yourself in the backend folder
 ``` bash   
 python3 -m venv env
 source ./env/bin/activate
@@ -28,29 +30,30 @@ File structure
  ```
  -> backend
     -> backend
-    -> books // in get ignore
+    -> books 
     -> data
     -> keywords
-    -> server
+    
 ```
-
+Note that the books / keywords are in the gitignore files, what's more important is the db.sqlite3 since it has all of the data of the books.
 ### 2.0. First steps
+- In case of using your own data (books) or your own database, please use these commands as well to `2.1.` section, if you decide to stick with the normal data, skip to section `2.2`
 in the backend folder
 ```bash   
 python manage.py makemigrations
 python manage.py migrate
 ```
 ### 2.1. Commands to execute
-These django commands needs to be executed in this specific order so that the project actually works correctly, note that these commands may take some time, depending on your CPU / internet speed so grab a coffee and call your friends ( you probably don't have any)
+These django commands needs to be executed in this specific order so that the project actually works correctly, note that these commands may take some time, depending on your CPU / internet speed so grab a coffee and call your friends ( you probably don't have any since you're in computer science).
 - Make sure to be in thed ```./backend``` folder
 ```sh   
 mkdir keywords
-python manage.py initBooks
+python manage.py initBooks  
 python manage.py computeKeywords
 python manage.py addKeywords
 python manage.py createGraphJaccard
 python manage.py tfidf
-python manage.py cosin keyword [--langauage {string,default= both} --top {int, default=10} --min-score {float,default=0.4}]
+python manage.py cosin keyword [args**]
 ```
 ### 2.2. Workflow of `./backend/data`
 The `./backend/data` directory contains all the logic related to data processing, keyword computation, and similarity graph creation.
@@ -141,7 +144,7 @@ at the index :
     -   When the distance is below the threshold (indicating similarity), connects books as neighbors.
     -   Creates bi-directional neighbor relationships in the database.
 ##### 2.2.1.5. `tfidf`
-    - creates the TF-IDF for each keyword 
+- creates the TF-IDF for each keyword 
 ##### 2.2.1.5. `cosin`
 - This script serves as a local test for improving book search speed using cosine similarity
 1. **Command-Line Arguments**:
@@ -248,7 +251,7 @@ Therefore, **the maximum possible number of edges in this graph is 603,351**.
 #### 2.2.5. Views (`views.py`)
 
 -   Handles API endpoints:
-    -   `data/books/`: Returns the list of books with filtering options:
+    -   `server/books/`: Returns the list of books with filtering options:
         -   Language filtering.
         -   Author name search (classic or regex).
         -   Title search (classic or regex).
@@ -259,27 +262,9 @@ Therefore, **the maximum possible number of edges in this graph is 603,351**.
         -   applies the centrality method.
         -   Returns detailed book information for all neighbors.
         
-    -   `data/books/keywords/cosine-similarity/` : returns neighbhors using cosine similarity
-    -   `server/books/`: General book-related operations.
-
-### 2.3. Workflow of `./backend/server`
-
-#### `views.py`: API Endpoint for Book Lists
-
-- ***Purpose***: Handles API requests to retrieve and sort book lists, and provides book suggestions.
-- ***Workflow***:
-1. Receives a request to `/server/books/`.
-2. Checks for cached results using request parameters as the cache key.
-3. Forwards the request (with URL modification) to the `/data/books/` API to fetch book data.
-4. Parses query parameters for sorting (by centrality) and order.
-5. If sorting is requested, implements different approaches based on dataset size:
-    - For small datasets (≤20 items): Calculates immediately.
-    - For medium datasets (21-50 items): Processes in a background thread.
-
-
-6. Generates book suggestions with optimized caching and timeout controls.
-7. Returns a JSON response containing the sorted book list and suggestions.
-#### `sort.py`: Sorting and Suggestion Logic
+    -   `data/books/keywords/cosine-similarity/` : returns neighbhors using cosine similarity for keywords.
+ 
+#### 2.2.6. `sort.py`: Sorting and Suggestion Logic
 
 -   **Purpose:** Implements sorting based on graph centrality and generates book suggestions.
 -   **Workflow:**
@@ -303,14 +288,7 @@ Therefore, **the maximum possible number of edges in this graph is 603,351**.
     -   Edges between nodes represent similarity between books.
     -   **Node Weight:** In a weighted graph, the weight of an edge represents the degree of similarity between two books, calculated by the number of shared subjects.
     -   **Adding Neighbors:** Neighbors are added based on the intersection of the subject lists of the books. If the intersection is not empty, an edge is created between the corresponding nodes.
-
-
-#### `urls.py`: URL Routing
-
--   **Purpose:** Defines the URL endpoint for the book list API.
--   **Functionality:** Maps the `/server/books/` URL to the `BooksList` view in `views.py`.
-
-#### `graph.py`: Graph Data Structures and Algorithms
+#### 2.2.7. `graph.py`: Graph Data Structures and Algorithms
 
 -   **Purpose:** Implements graph data structures and centrality algorithms.
 -   **Graph Representation:**
@@ -322,13 +300,7 @@ Therefore, **the maximum possible number of edges in this graph is 603,351**.
 -   **Adding Neighbors:**
     -   `UnweightedGraph`: Adds neighbor nodes to a node's neighbor list.
     -   `WeightedGraph`: Adds neighbor nodes with their corresponding edge weights to a node's neighbor dictionary.
-
-#### `config.py`: Server Configuration
-
--   **Purpose:** Stores configuration settings for the server.
--   **Functionality:** Defines the base URL for the server API.
-
-#### `centrality.py`: Centrality Calculation
+#### 2.2.8. `centrality.py`: Centrality Calculation
 
 -   **Purpose:** Implements algorithms for calculating closeness and betweenness centrality.
 -   **Closeness Centrality:**
@@ -348,7 +320,11 @@ Therefore, **the maximum possible number of edges in this graph is 603,351**.
 - Cached API responses, neighbors data, and centrality calculations
 - Used unique cache keys based on query parameters
 - Added reasonable timeouts for cached items
-## 2.4. Results :
+
+
+
+
+## 2.3. Results :
 - Here we tried comparing The betweeness & closness & cosin. Our method is simple, Cosin takes in precalculated tf-idf for each token, and returns the books candidates. For the centrality, upon the request, we get the neighbhors that are precalculated and are in the data base, and we get the nodes to process, we may note that the graph can either be weighted  or UnweightedGraph, the closeness centrality, the graph needs to be weighted, but the betweenesss is an UnweightedGraph. We also sort by the number of download. the query is tested on the same token that is `sargon` for closeness and for for the between the title "The c" was selected
    -  ***Results of calculation time***
         - 1. ***Cosin*** : 0.00155 ~0.0017 seconds 
@@ -357,7 +333,7 @@ Therefore, **the maximum possible number of edges in this graph is 603,351**.
         - 1. ***Download count*** : 0.014 3seconds 
 
     which makes the cosin the fastest of them.
-## 2.5. Server Startup
+## 3. Server Startup
 in the ```./backend``` folder, execute :
 ```bash
 python manage.py runserver
