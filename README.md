@@ -330,10 +330,18 @@ Therefore, **the maximum possible number of edges in this graph is 603,351**.
    -  ***Results of calculation time***
         - 1. ***Cosin*** : 0.00155 ~0.0017 seconds 
         - 2. ***Closeness*** : 0.005
-        - 2. ***Betweeness*** : 0.0067
-        - 1. ***Download count*** : 0.014 3seconds 
+        - 3. ***Betweeness*** : 0.0067
+        - 4. ***Download count*** : 0.014 3seconds 
 
     which makes the cosin the fastest of them.
+## 2.4. Compraison on api requests: 
+The point is to get the books that the world `hello` appears, the aim is trying to calculate the request time of each method. The calculation time starts from the moment the request is receive until the reponse is sent.
+  -  ***Results of api requests***
+    - 1. ***Cosin*** : 0.04 seconds
+    - 2. ***Closeness*** : 1.32 seconds
+    - 3. ***Betweeness*** : 1.44 seconds
+    - 4. ***Download count*** : 1.5 seconds 
+
 ## 3. Server Startup
 in the ```./backend``` folder, execute :
 ```bash
