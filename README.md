@@ -37,7 +37,8 @@ File structure
 ```
 Note that the books / keywords are in the gitignore files, what's more important is the db.sqlite3 since it has all of the data of the books.
 ### 2.0. First steps
-- In case of using your own data (books) or your own database, please use these commands as well to `2.1.` section, if you decide to stick with the normal data, skip to section `2.2`
+- In case of using your own data (books) or your own database, please use these commands as well to `2.1.` section, if you decide to stick with the normal data, skip to section `2.2`.
+
 in the backend folder
 ```bash   
 python manage.py makemigrations
