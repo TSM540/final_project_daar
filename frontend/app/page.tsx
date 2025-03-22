@@ -35,7 +35,7 @@ function SimpleSearchForm({ onSearch,loadingState }: { onSearch: (data: any) => 
         loadingState(true);
         const response = await fetch(url, { mode: "cors" });
         const result = await response.json();
-        onSearch(result);
+        onSearch({...result, searchParams: {keyword, title, author}});
       } catch (error) {
       console.error("Error fetching the books:", error);
       }finally{
@@ -134,7 +134,7 @@ function AdvancedSearchForm({ onSearch,setLoading }: { onSearch: (data: any) => 
             setLoading(true);
             const response = await fetch(url, { mode: "cors" });
             const result = await response.json();
-            onSearch(result);
+            onSearch({...result, searchParams: {keyword, title, author}});
       } catch (error) {
             console.error("Error fetching books:", error);
       } finally {
@@ -280,8 +280,8 @@ function TFIDFCosineSearchForm({ onSearch, setLoading }: { onSearch: (data: any)
         setLoading(true);
         const response = await fetch(url, { mode: "cors" });
         const result = await response.json();
-        // Format the result to match the expected structure
-        onSearch({ result: result, suggestions: [] });
+        // Format the result to match the expected structure and add search params
+        onSearch({ result: result, suggestions: [], searchParams: {keyword} });
       } catch (error) {
         console.error("Error fetching books with cosine similarity:", error);
       } finally {
@@ -418,10 +418,38 @@ function Book({ book }: { book: any }) {
   );
 }
 
+// Helper function to determine which search terms to display
+const getSearchTermsString = (searchParams: any) => {
+  if (!searchParams) return "";
+  
+  const terms = [];
+  if (searchParams.keyword) terms.push(`keyword "${searchParams.keyword}"`);
+  if (searchParams.title) terms.push(`title "${searchParams.title}"`);
+  if (searchParams.author) terms.push(`author "${searchParams.author}"`);
+  
+  if (terms.length === 0) return "";
+  return terms.join(", ");
+};
+
 export default function Home() {
-  const [bookData, setBookData] = useState({ result: [], suggestions: [] });
+  const [bookData, setBookData] = useState({ 
+    result: [], 
+    suggestions: [],
+    searchParams: null,
+    hasSearched: false // Track if a search has been performed
+  });
   const [loading, setLoading] = useState(false);
-  // Log the data to see its structure
+  
+  // Update the setBookData to track if a search has been made
+  const handleSetBookData = (data: any) => {
+    setBookData({
+      ...data,
+      hasSearched: true // Mark that a search has been performed
+    });
+  };
+
+  // Search terms string for display
+  const searchTermsString = getSearchTermsString(bookData.searchParams);
 
   return (
     <div>
@@ -441,29 +469,33 @@ export default function Home() {
           </div>
           
           <TabsContent value="simple" className="flex justify-center">
-            <SimpleSearchForm onSearch={setBookData} loadingState={setLoading} />
+            <SimpleSearchForm onSearch={handleSetBookData} loadingState={setLoading} />
           </TabsContent>
           
           <TabsContent value="advanced" className="flex justify-center">
-            <AdvancedSearchForm onSearch={setBookData} setLoading={setLoading}/>
+            <AdvancedSearchForm onSearch={handleSetBookData} setLoading={setLoading}/>
           </TabsContent>
           
           <TabsContent value="tfidf" className="flex justify-center">
-            <TFIDFCosineSearchForm onSearch={setBookData} setLoading={setLoading}/>
+            <TFIDFCosineSearchForm onSearch={handleSetBookData} setLoading={setLoading}/>
           </TabsContent>
         </Tabs>
-         {/* Loading indicator */}
+         
+        {/* Loading indicator */}
         {loading && (
           <div className="mt-8 flex justify-center items-center">
-            {/* <div className="p-4 rounded-lg bg-primary/10 text-primary font-medium"> */}
-              <Loader />
-            {/* </div> */}
+            <Loader />
           </div>
         )}
-        <div className="mt-12 space-y-10 ">
-          {!loading  &&bookData.result && bookData.result.length > 0 && (
+        
+        <div className="mt-12 space-y-10">
+          {/* Results section with book count */}
+          {!loading && bookData.result && bookData.result.length > 0 && (
             <div>
-              <h2 className="text-2xl font-bold mb-4">Results</h2>
+              <h2 className="text-2xl font-bold mb-4">
+                Results {bookData.result.length > 0 && `(${bookData.result.length} books found)`}
+                {searchTermsString && <span className="block text-lg font-normal mt-1">Related to {searchTermsString}</span>}
+              </h2>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                 {bookData.result.map((book: any, index: number) => (
                   <Book key={index} book={book} />
@@ -472,9 +504,12 @@ export default function Home() {
             </div>
           )}
           
+          {/* Suggestions section with book count */}
           {!loading && bookData.suggestions && bookData.suggestions.length > 0 && (
             <div>
-              <h2 className="text-2xl font-bold mb-4">You Might Also Like</h2>
+              <h2 className="text-2xl font-bold mb-4">
+                You Might Also Like {bookData.suggestions.length > 0 && `(${bookData.suggestions.length} books)`}
+              </h2>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                 {bookData.suggestions.map((book: any, index: number) => (
                   <Book key={index} book={book} />
@@ -482,31 +517,29 @@ export default function Home() {
               </div>
             </div>
           )}
-           {!loading && bookData.suggestions && bookData.suggestions.length ===0 
-            && bookData.result && bookData.result.length === 0 && (
-              <div className="mt-8 flex flex-col justify-center items-center">
-                <div className="p-4 rounded-lg bg-primary/10 text-primary font-medium">
-                  No books found
-               
-                </div>
-                <div className="mt-20 mx-auto w-full max-w-sm rounded-md border border-gray-500 p-4">
-                <div className="flex animate-pulse space-x-4">
-                  {/* <div className="size-10 rounded-full bg-gray-200"></div> */}
-                  <div className="flex-1 space-y-6 py-1">
-                    <div className="h-2 rounded bg-gray-200"></div>
-                    <div className="space-y-3">
-                      <div className="grid grid-cols-3 gap-4">
-                        <div className="col-span-2 h-2 rounded bg-gray-200"></div>
-                        <div className="col-span-1 h-2 rounded bg-gray-200"></div>
-                      </div>
-                      <div className="h-2 rounded bg-gray-200"></div>
-                    </div>
-                  </div>
-                </div>
+          
+          {/* No books found state (only show when a search was performed) */}
+          {!loading && bookData.hasSearched && 
+           bookData.result.length === 0 && 
+           bookData.suggestions.length === 0 && (
+            <div className="mt-8 flex justify-center items-center">
+              <div className="p-4 rounded-lg bg-primary/10 text-primary font-medium">
+                No books found
               </div>
+            </div>
+          )}
+          
+          {/* Initial state (before any search) */}
+          {!loading && !bookData.hasSearched && (
+            <div className="mt-8 flex flex-col justify-center items-center text-center">
+              <div className="p-8 rounded-lg bg-primary/5 text-primary">
+                <h3 className="text-xl font-medium mb-2">Search your favorite books</h3>
+                <p className="text-base text-foreground/80">
+                  Use the search forms above to discover books by title, author, or keyword
+                </p>
               </div>
-            )
-           }
+            </div>
+          )}
         </div>
       </div>
     </div>

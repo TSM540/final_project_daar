@@ -48,7 +48,7 @@ class BooksList(APIView):
         start_time_sort = time.time()
         sort = request.GET.get('sort')
         
-        if sort in ['closeness', 'betweenness']:
+        if sort in ['closeness', 'Betweenness']:
             ordre = request.GET.get('order', 'descending')
             
             # Process centrality calculation based on dataset size
@@ -62,17 +62,21 @@ class BooksList(APIView):
                         results = sorted_results
                     elif len(results) <= 20:
                         # For small datasets, calculate immediately
+                        centrality_timer = time.time()
                         sorted_results = sort_by_centrality(
                             results, 
                             Centrality.CLOSENESS if sort == 'closeness' else Centrality.BETWEENNESS, 
                             ordre
                         )
+                        print(f"Background centrality calculation submitted in {time.time() - centrality_timer:.4f} seconds")
+                        
                         results = sorted_results
                         # Cache for longer (24 hours)
-                        cache.set(centrality_cache_key, sorted_results, timeout=86400)
+                        # cache.set(centrality_cache_key, sorted_results, timeout=86400)
                     else:
                         # For medium datasets (21-50), calculate in background and use unsorted for now
                         # Submit task to background executor
+                        centrality_timer = time.time()
                         executor.submit(
                             self._background_centrality_calculation,
                             results[:],  # Copy to avoid reference issues
@@ -80,9 +84,10 @@ class BooksList(APIView):
                             ordre,
                             centrality_cache_key
                         )
+                        print(f"Background centrality calculation submitted in {time.time() - centrality_timer:.4f} seconds")
         
         end_time_sort = time.time()
-        print(f"BookList sorting time: {end_time_sort - start_time_sort:.4f} seconds")
+        # print(f"BookList sorting time: {end_time_sort - start_time_sort:.4f} seconds")
         
         # Get suggestions with optimized approach
         start_time_suggestions = time.time()
@@ -105,7 +110,7 @@ class BooksList(APIView):
                         # Wait max 2 seconds for suggestions
                         suggestions = future.result(timeout=2.0)
                     # Cache suggestions for longer (24 hours)
-                    cache.set(suggestions_cache_key, suggestions, timeout=86400)
+                    # cache.set(suggestions_cache_key, suggestions, timeout=86400)
                 except Exception as e:
                     print(f"Suggestion generation timed out or failed: {e}")
                     suggestions = []  # Empty list if timeout or error
@@ -120,7 +125,7 @@ class BooksList(APIView):
         }
         
         # Cache the entire response for longer (4 hours instead of 1)
-        cache.set(cache_key, response_data, timeout=14400)
+        # cache.set(cache_key, response_data, timeout=14400)
         
         execution_time = time.time() - start_time
         print(f"BookList query execution time: {execution_time:.4f} seconds")

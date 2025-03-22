@@ -77,11 +77,11 @@ def compute_betweenness_centrality(G: UnweightedGraph):
             if w != s:
                 C_B[w] += delta[w]
     
+    print(f"Betweenness centrality calculation completed in {time.time() - start_time:.4f} seconds")
     # Assign centrality measures to nodes
     for w in G.nodes:
         w.centrality_measure = C_B[w]
     
-    print(f"Betweenness centrality calculation completed in {time.time() - start_time:.4f} seconds")
 
 def compute_closeness_centrality(G: WeightedGraph):
     """Optimized closeness centrality calculation with early termination for large graphs"""

@@ -349,7 +349,14 @@ Therefore, **the maximum possible number of edges in this graph is 603,351**.
 - Used unique cache keys based on query parameters
 - Added reasonable timeouts for cached items
 ## 2.4. Results :
-- Here we tried comparing The betweeness & closness & cosin.
+- Here we tried comparing The betweeness & closness & cosin. Our method is simple, Cosin takes in precalculated tf-idf for each token, and returns the books candidates. For the centrality, upon the request, we get the neighbhors that are precalculated and are in the data base, and we get the nodes to process, we may note that the graph can either be weighted  or UnweightedGraph, the closeness centrality, the graph needs to be weighted, but the betweenesss is an UnweightedGraph. We also sort by the number of download. the query is tested on the same token that is `sargon` for closeness and for for the between the title "The c" was selected
+   -  ***Results of calculation time***
+        - 1. ***Cosin*** : 0.00155 ~0.0017 seconds 
+        - 2. ***Closeness*** : 0.005
+        - 2. ***Betweeness*** : 0.0067
+        - 1. ***Download count*** : 0.014 3seconds 
+
+    which makes the cosin the fastest of them.
 ## 2.5. Server Startup
 in the ```./backend``` folder, execute :
 ```bash
