@@ -1,1 +1,0 @@
-URL_BASE_SERVER = 'server/'

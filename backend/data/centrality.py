@@ -1,5 +1,5 @@
 from collections import deque
-from server.graph import WeightedGraph, UnweightedGraph
+from data.graph import WeightedGraph, UnweightedGraph
 from enum import Enum, auto
 import time
 from django.core.cache import cache
