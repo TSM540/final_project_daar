@@ -13,9 +13,9 @@ pip install -r req.txt
 ### 1.2. Macos/Linux
 Place yourself in the backend folder
 ``` bash   
-python3 -m venv env
+python3.11 -m venv env
 source ./env/bin/activate
-pip3 install -r req.txt
+pip install -r req.txt
 ```
 Postgres should be installed in your device.
 
@@ -23,7 +23,7 @@ Postgres should be installed in your device.
 brew install postgresql
 
 ```
-
+The python version should be `< 3.12` && `>3.6`
 
 ## 2. Backend
 File structure
