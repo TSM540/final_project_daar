@@ -129,9 +129,50 @@ at the index :
 
 ##### Problem
 
-- After multiple attempts, we observed that standard preprocessing resulted in approximately 1 million tokens for English and 49,000 tokens for French. However, after 8 hours of continuous processing, we were only able to handle 250,000 English tokens while fully processing the French dataset. Additionally, the generated index table contained around 1 million rows, necessitating the implementation of a thresholding mechanism for each language.
+- After multiple attempts, we observed that standard preprocessing resulted in approximately 10 million tokens for English and 400k tokens for French. However, after 8 hours of continuous processing, we were only able to handle 250,000 English out of 10 million tokens. Additionally, the generated index table contained around 1 million rows, necessitating the implementation of a thresholding mechanism for each book.
 
-- Further analysis revealed that the primary bottleneck was caused by low-frequency tokens, specifically those that appeared only once in the dataset. To optimize performance, we introduced a filtering criterion: tokens with an occurrence below a predefined threshold were excluded from the index table. This pre-filtering step significantly reduced the number of candidate tokens, bringing the English token count from 930,000 to 36,000 and the French token count from 49,000 to 6,500. This bottleneck was because of the slow r/w queries to the database, and not the laptop.
+
+
+# Keyword Analysis Results
+<div align="center">
+  <img src="backend/thresholds/keyword_analysis_combined_line.png" width="800" alt="Combined Keyword Analysis">
+</div>
+
+## English Keywords Analysis
+
+<table>
+  <tr>
+    <td><img src="backend/thresholds/keyword_analysis_en_total_bar.png" alt="English Keywords by Threshold" width="100%"></td>
+    <td><img src="backend/thresholds/keyword_analysis_en_reduction_bar.png" alt="English Keywords Reduction" width="100%"></td>
+  </tr>
+  <tr>
+    <td><img src="backend/thresholds/keyword_analysis_en_avg_bar.png" alt="English Keywords per Book" width="100%"></td>
+    <td><img src="backend/thresholds/keyword_analysis_en_boxplot.png" alt="English Keywords Distribution" width="100%"></td>
+  </tr>
+</table>
+
+## French Keywords Analysis
+
+<table>
+  <tr>
+    <td><img src="backend/thresholds/keyword_analysis_fr_total_bar.png" alt="French Keywords by Threshold" width="100%"></td>
+    <td><img src="backend/thresholds/keyword_analysis_fr_reduction_bar.png" alt="French Keywords Reduction" width="100%"></td>
+  </tr>
+  <tr>
+    <td><img src="backend/thresholds/keyword_analysis_fr_avg_bar.png" alt="French Keywords per Book" width="100%"></td>
+    <td><img src="backend/thresholds/keyword_analysis_fr_boxplot.png" alt="French Keywords Distribution" width="100%"></td>
+  </tr>
+</table>
+
+## Combined Analysis
+
+![Combined Line Chart](backend/thresholds/keyword_analysis_combined_line.png)
+
+- From the plots, we can see that just threshold of 5 is already making a 74-77% reduction, but we still are about 2.6 million tokens, so we decided to choose the ***25 threshold*** for english to get about 580k tokens, and ***10*** for french to 40k tokens.
+- Further analysis revealed that the primary bottleneck was caused by low-frequency tokens, specifically those that appeared only once in the dataset (eg: `'hello'` appears once in Books ``1..1664``). To optimize performance, we introduced a filtering criterion: tokens with an occurrence below a predefined threshold were excluded from the index table. This pre-filtering step significantly reduced the number of candidate tokens, bringing the English token count from 10 million to 36,000 and the French token count from 400k to 44k. This bottleneck was because of the slow r/w queries to the database. 
+
+
+
 
 
 ##### 2.2.1.4. `createGraphJaccard`
@@ -164,10 +205,10 @@ at the index :
 
 ##### 2.2.1.7 `Number of tokens, Index Table size `
  - English 
-    - number of tokens : 36k 
+    - number of unique tokens : 36k 
     - index table size : 580k rows
  - French 
-    - number of tokens : 6.5k 
+    - number of unique tokens  : 6.5k 
     - index table size : 40k rows
  - Graph :
     - Number of vertices : 1099 vertices (rows)
