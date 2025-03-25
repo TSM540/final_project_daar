@@ -164,9 +164,8 @@ at the index :
   </tr>
 </table>
 
-## Combined Analysis
 
-![Combined Line Chart](backend/thresholds/keyword_analysis_combined_line.png)
+
 
 - From the plots, we can see that just threshold of 5 is already making a 74-77% reduction, but we still are about 2.6 million tokens, so we decided to choose the ***25 threshold*** for english to get about 580k tokens, and ***10*** for french to 40k tokens.
 - Further analysis revealed that the primary bottleneck was caused by low-frequency tokens, specifically those that appeared only once in the dataset (eg: `'hello'` appears once in Books ``1..1664``). To optimize performance, we introduced a filtering criterion: tokens with an occurrence below a predefined threshold were excluded from the index table. This pre-filtering step significantly reduced the number of candidate tokens, bringing the English token count from 10 million to 36,000 and the French token count from 400k to 44k. This bottleneck was because of the slow r/w queries to the database. 
@@ -305,7 +304,21 @@ Therefore, **the maximum possible number of edges in this graph is 603,351**.
         -   Returns detailed book information for all neighbors.
         
     -   `data/books/keywords/cosine-similarity/` : returns neighbhors using cosine similarity for keywords.
- 
+        - Initial Filtering & Keyword extraction
+        - ***Vector Representation*** :
+            - Keywords become dimensions of the vector
+            - TF-IDF (Term Frequency-Inverse Document Frequency) scores are used as vector coordinates
+            - This converts textual information into a numerical representation that can be mathematically compared
+
+        - ***Cosine Similarity Calculation***
+            - Measures the cosine of the angle between two book vectors
+            - Similarity score ranges from 0 (completely different) to 1 (identical)
+            - Calculated using the formula `similarity = (dot product of vectors) / (magnitude of vector 1 * magnitude of vector 2)`
+        - *** Similarity Filtering and Ranking***
+            - Identifies books with similarity scores above a threshold (default 0.3)
+            - Ranks books by their similarity score
+            - Optionally limits the number of results
+            - Provides option to sort by additional criteria like download count
 #### 2.2.6. `sort.py`: Sorting and Suggestion Logic
 
 -   **Purpose:** Implements sorting based on graph centrality and generates book suggestions.
@@ -372,16 +385,16 @@ Therefore, **the maximum possible number of edges in this graph is 603,351**.
         - 1. ***Cosin*** : 0.00155 ~0.0017 seconds 
         - 2. ***Closeness*** : 0.005
         - 3. ***Betweeness*** : 0.0067
-        - 4. ***Download count*** : 0.014 3seconds 
+        - 4. ***Download count*** : 0.01 seconds 
 
     which makes the cosin the fastest of them.
 ## 2.4. Compraison on api requests: 
 The point is to get the books that the world `hello` appears, the aim is trying to calculate the request time of each method. The calculation time starts from the moment the request is receive until the reponse is sent.
-  -  ***Results of api requests***
-    - 1. ***Cosin*** : 0.04 seconds
-    - 2. ***Closeness*** : 1.32 seconds
-    - 3. ***Betweeness*** : 1.44 seconds
-    - 4. ***Download count*** : 1.5 seconds 
+  -  ***Results of api requests***:
+        - 1. ***Cosin*** : 0.04 seconds
+        - 2. ***Closeness*** : 1.32 seconds
+        - 3. ***Betweeness*** : 1.44 seconds
+        - 4. ***Download count*** : 2 seconds 
 
 ## 3. Server Startup
 in the ```./backend``` folder, execute :
