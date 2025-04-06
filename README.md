@@ -55,6 +55,8 @@ python manage.py addKeywords
 python manage.py createGraphJaccard
 python manage.py tfidf
 python manage.py cosin keyword [args**]
+python manage.py final_threshold
+python manage.py graphVisualisation
 ```
 ### 2.2. Workflow of `./backend/data`
 The `./backend/data` directory contains all the logic related to data processing, keyword computation, and similarity graph creation.
@@ -135,10 +137,10 @@ at the index :
 
 # Keyword Analysis Results
 <div align="center">
-  <img src="backend/thresholds/keyword_analysis_combined_line.png" width="800" alt="Combined Keyword Analysis">
+  <img src="backend/final_thresholds/keyword_analysis_combined_line.png" width="800" alt="Combined Keyword Analysis">
 </div>
 
-## English Keywords Analysis
+<!-- ## English Keywords Analysis
 
 <table>
   <tr>
@@ -162,13 +164,13 @@ at the index :
     <td><img src="backend/thresholds/keyword_analysis_fr_avg_bar.png" alt="French Keywords per Book" width="100%"></td>
     <td><img src="backend/thresholds/keyword_analysis_fr_boxplot.png" alt="French Keywords Distribution" width="100%"></td>
   </tr>
-</table>
+</table> -->
 
 
 
 
 - From the plots, we can see that just threshold of 5 is already making a 74-77% reduction, but we still are about 2.6 million tokens, so we decided to choose the ***25 threshold*** for english to get about 580k tokens, and ***10*** for french to 40k tokens.
-- Further analysis revealed that the primary bottleneck was caused by low-frequency tokens, specifically those that appeared only once in the dataset (eg: `'hello'` appears once in Books ``1..1664``). To optimize performance, we introduced a filtering criterion: tokens with an occurrence below a predefined threshold were excluded from the index table. This pre-filtering step significantly reduced the number of candidate tokens, bringing the English token count from 10 million to 36,000 and the French token count from 400k to 44k. This bottleneck was because of the slow r/w queries to the database. 
+- Further analysis revealed that the primary bottleneck was caused by low-frequency tokens, specifically those that appeared only once in the dataset (eg: `'hello'` appears once in Books ``1..1664``). To optimize performance, we introduced a filtering criterion: tokens with an occurrence below a predefined threshold were excluded from the index table. This pre-filtering step significantly reduced the number of candidate tokens, bringing the English token count from 10 million to 36k and the French token count from 400k to 6.6k. This bottleneck was because of the slow r/w queries to the database. 
 
 
 
@@ -184,6 +186,20 @@ at the index :
     -   Compares each book with all other books using the Jaccard distance function.
     -   When the distance is below the threshold (indicating similarity), connects books as neighbors.
     -   Creates bi-directional neighbor relationships in the database.
+
+<table>
+  <tr>
+    <td><img src="backend/graph/graph_3d_visualization.png" alt="French Keywords by Threshold" width="100%"></td>
+    <td><img src="backend/graph/graph_3d_visualization_simplified.png" alt="French Keywords Reduction" width="100%"></td>
+  </tr>
+
+</table>
+We can visually see on the left all the nodes, and on the right the first 1000  edges between the nodes, and we find as a result : 
+
+- `60 Connected Components`  
+- Largest connected component size : `942`
+
+
 ##### 2.2.1.5. `tfidf`
 - creates the TF-IDF for each keyword 
 ##### 2.2.1.5. `cosin`
